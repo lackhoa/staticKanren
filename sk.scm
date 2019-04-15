@@ -42,23 +42,23 @@
 (define var->name (lambda (var) (vector-ref var 0)))
 (define var->bd (lambda (var) (vector-ref var 1)))
 (define var? vector?)
-(define var<?
+(define var>?
   ;; v1 is prioritized over v2
   (lambda (v1 v2)
     (let ([n1 (symbol->string (var->name v1))] [bd1 (var->bd v1)]
           [n2 (symbol->string (var->name v2))] [bd2 (var->bd v2)])
       (or (< bd1 bd2)
-         (and (= bd1 bd2) (string<? n1 n2))))))
+          (and (= bd1 bd2) (string<? n1 n2))))))
 
 ;;; Associations and Environments
 (define make-s (lambda (u v) `(,u ,v)))
 (define lhs car)
 (define rhs cadr)
-(define extend (lambda (env l r) `(,(make-s l r) . ,env)))
+(define extend (lambda (l r S) `(,(make-s l r) . ,S)))
 (define extend-check
   (lambda (v t S)
     (and (not (occurs? v t S))
-       (extend S v t))))
+         (extend v t S))))
 
 ;;; Constraints
 (define all-constraints '(S C D F))
@@ -106,9 +106,9 @@
       (cond
        [(eq? t1 t2) S]
        [(and (var? t1) (var? t2))
-        (or (and (var<? t2 t1)
-                 (extend S t1 t2))
-            (extend S t2 t1))]
+        (cond
+         [(var>? t2 t1) (extend t1 t2 S)]
+         [else (extend t2 t1 S)])]
        [(var? t1) (extend-check t1 t2 S)]
        [(var? t2) (extend-check t2 t1 S)]
        [(and (pair? t1) (pair? t2))
@@ -360,7 +360,7 @@
               else
               (let ([new-var
                      (var (au-name (length iS)) AU-BD)])
-                (values new-var (extend iS t* new-var)))]))])
+                (values new-var (extend t* new-var iS)))]))])
       res)))
 (define eqp? (lambda (u) (lambda (v) (eq? u v))))
 
