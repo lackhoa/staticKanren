@@ -1,7 +1,8 @@
-(load "compiler.ss")
+(load "sk.scm")
 (load "reif.ss")
 
 ;;; Functions
+(define pp pretty-print)
 (define membero
   (lambda (x ees)
     (fresh (e es)
